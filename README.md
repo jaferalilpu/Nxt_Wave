@@ -4,10 +4,9 @@ Proofdesk is a full-stack monorepo application that uses Google Gemini to automa
 
 ---
 
-##  Live Demo & Submission Links
+##  Links
 * **Live Application URL:** [https://nxt-wave-g162.onrender.com](https://nxt-wave-g162.onrender.com)
-* **GitHub Repository:** [Insert GitHub Repo Link Here]
-* **Demo Video / Lesson Walkthrough:** [Insert Loom or Google Drive Link Here]
+* **GitHub Repository:** [Github}(https://github.com/jaferalilpu/Nxt_Wave)
 
 ---
 
@@ -40,30 +39,29 @@ To run this project locally for development or testing:
 
 ## Clone the Repository:
 
-git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-cd your-repo-name
+* **git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+* **cd your-repo-name
 
 ## Install Frontend Dependencies & Build:
 
-cd frontend
-npm install
-npm run build
-cd ..
+* **cd frontend**
+* **npm install**
+* **npm run build**
+* **cd ..**
 
 ## Install Backend Dependencies:
 
-cd backend
-npm install
-Configure Environment Variables:
+* **cd backend**
+* **npm install**
+## Configure Environment Variables:
 Create a .env file inside the backend/ directory with:
-
-## Code snippet
+Code snippet
 PORT=4000
 GEMINI_API_KEY=your_google_ai_studio_api_key_here
 MODEL=gemini-1.5-flash
 ## Start the Application:
 
-npm --prefix backend start
+* **npm --prefix backend start**
 Open your browser and navigate to http://localhost:4000.
 
 ## 📝 Architectural Decisions & Trade-Offs
