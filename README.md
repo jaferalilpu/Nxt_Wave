@@ -30,8 +30,7 @@ Set **one** of these in `backend/.env`:
 
 | Provider | Key variable | Default model |
 |---|---|---|
-| Google Gemini | `GEMINI_API_KEY` | `gemini-2.5-flash` |
-| Anthropic | `ANTHROPIC_API_KEY` | `claude-sonnet-5-5` |
+| Google Gemini | `GEMINI_API_KEY` | `gemini-3.5-flash` |
 
 The provider is picked from whichever key is set (or force it with `LLM_PROVIDER`). Set `MODEL` to the exact model name your key has access to. The badge in the top right of the app shows demo mode or the model in use.
 
