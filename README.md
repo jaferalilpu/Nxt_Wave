@@ -1,56 +1,83 @@
-# Proofdesk
+# Proofdesk: AI-Powered Code Assessment & Question Generator
 
-Proofdesk helps a content reviewer turn reading material into a five-question group and decide, question by question, whether it is good enough to go out.
+Proofdesk is a full-stack monorepo application that uses Google Gemini to automatically analyze technical markdown study materials containing code snippets and generate rigorous, grounded assessment questions with complete pedagogical validation.
 
-One group is always: **2 theory MCQs, 2 true/false, 1 code-analysis**, exported in a tagged text format.
+---
 
-The rule the whole tool is built around: **a question that tests something the material does not teach is a failed question.** Proofdesk handles that in three layers, described below.
+##  Live Demo & Submission Links
+* **Live Application URL:** [https://nxt-wave-g162.onrender.com](https://nxt-wave-g162.onrender.com)
+* **GitHub Repository:** [Insert GitHub Repo Link Here]
+* **Demo Video / Lesson Walkthrough:** [Insert Loom or Google Drive Link Here]
 
-## Run it
+---
 
-You need Node 18 or newer. No API key is required to try it.
+## Architecture & Tech Stack
+* **Monorepo Structure:** Unified single-service deployment where Express serves both the REST API endpoints and the compiled Vite/React static assets.
+* **Frontend:** React, Vite, Tailwind CSS / modern CSS.
+* **Backend:** Node.js, Express.js.
+* **AI Model Integration:** Google Gemini REST API (`gemini-1.5-flash` / `gemini-1.5-pro`) via direct server-to-server `fetch` with automated retry logic for high-demand resilience.
 
-```bash
-npm run setup        # installs backend and frontend dependencies
-npm run dev          # API on :4000, React app on :5173
+---
+
+## Project Structure
+```text
+├── backend/
+│   ├── src/
+│   │   ├── routes/api.js          # REST endpoints (/health, /generate, /regenerate, /verify, /export)
+│   │   ├── services/generator.js  # Core orchestration (parsing, model calls, grounding check)
+│   │   ├── services/llmClient.js  # Gemini API client with 503 high-demand retry handling
+│   │   ├── services/validator.js  # Structural validation rules
+│   │   ├── services/grounding.js  # Material grounding checks
+│   │   └── server.js              # Express entry point & static asset serving
+│   └── package.json
+├── frontend/
+│   ├── src/                       # React components & UI state management
+│   └── package.json
+└── README.md.
 ```
+## Setup & Local Installation Instructions
+To run this project locally for development or testing:
 
-Open http://localhost:5173, click **Load sample**, then **Write five questions**.
+## Clone the Repository:
 
-Without an API key the backend starts in **demo mode**: questions are built with plain rules from the material (fill-in-the-blank, true/false by swapping a term, a code result question). They are simpler than model-written ones but let you walk through the entire review flow offline.
+git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+cd your-repo-name
 
-### Use a real model
+## Install Frontend Dependencies & Build:
 
-```bash
-cp backend/.env.example backend/.env
-# open backend/.env, paste your key, save, then restart the backend
-```
+cd frontend
+npm install
+npm run build
+cd ..
 
-Set **one** of these in `backend/.env`:
+## Install Backend Dependencies:
 
-| Provider | Key variable | Default model |
-|---|---|---|
-| Google Gemini | `GEMINI_API_KEY` | `gemini-3.5-flash` |
+cd backend
+npm install
+Configure Environment Variables:
+Create a .env file inside the backend/ directory with:
 
-The provider is picked from whichever key is set (or force it with `LLM_PROVIDER`). Set `MODEL` to the exact model name your key has access to. The badge in the top right of the app shows demo mode or the model in use.
+## Code snippet
+PORT=4000
+GEMINI_API_KEY=your_google_ai_studio_api_key_here
+MODEL=gemini-1.5-flash
+## Start the Application:
 
-The app reads `backend/.env`, **not** `.env.example`. If you only edited the example file, the app silently stays in demo mode.
+npm --prefix backend start
+Open your browser and navigate to http://localhost:4000.
 
-### Run as one server (what deployment uses)
+## 📝 Architectural Decisions & Trade-Offs
+1. Unified Monorepo Hosting vs. Separate Services
+Decision: We chose to configure the Express backend to serve the compiled React dist folder directly (express.static + catch-all * routing).
 
-```bash
-npm run build        # builds the React app into frontend/dist
-npm start            # backend serves API and UI together on :4000
-```
+Trade-Off: While separating frontend (e.g., Vercel) and backend (e.g., Render) is common, a unified single-service deployment eliminates CORS complexity, simplifies environment variable management, and ensures zero configuration drift between client and server.
 
-### Tests
+2. Direct REST Integration with Gemini vs. Official SDK
+Decision: We implemented direct server-side fetch calls to the Google Gemini REST API (generateContent) rather than relying on heavy wrapper SDKs.
 
-```bash
-npm test
-```
+Trade-Off: This gives us absolute granular control over timeouts (AbortSignal), payload formatting (systemInstruction, contents, generationConfig), and custom retry loops for handling 503 Service Unavailable capacity spikes gracefully.
 
-Backend tests cover parsing, grounding, structure checks, the tag-format round trip, the demo generator, and the full live path for both Gemini and Anthropic against fake model servers (so they need no key or network).
+3. Strict Material Validation & Grounding
+Decision: The backend enforces strict validation rules (e.g., minimum character length, mandatory markdown code blocks, and automated grounding checks).
 
-## Deploy
-
-`render.yaml` is a Render blueprint for a single web service. Push the repo to GitHub, create a **Blueprint** on Render pointing at it, then add `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`) and `MODEL` in the dashboard. Without a key, the deployed app runs in demo mode. Any host that can run `npm --prefix backend start` after a frontend build works the same way.
+Trade-Off: This prevents the LLM from hallucinating questions detached from the study text, ensuring that every generated question is strictly supported by the provided source material.
