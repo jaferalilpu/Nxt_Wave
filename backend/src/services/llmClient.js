@@ -3,7 +3,7 @@ import { config } from '../config.js';
 import { AppError } from '../utils/AppError.js';
 
 export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${config.apiKey}`;
+  const url = `https://api.groq.com/openai/v1/chat/completions/${config.model}:generateContent?key=${config.apiKey}`;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     let res;
