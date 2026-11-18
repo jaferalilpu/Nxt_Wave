@@ -1,3 +1,7 @@
+
+import { config } from '../config.js';
+import { AppError } from '../utils/AppError.js';
+
 export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${config.apiKey}`;
 
@@ -21,7 +25,6 @@ export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) 
     }
 
     if (res.status === 503 && attempt < retries) {
-      // Wait before retrying on high demand
       await new Promise((r) => setTimeout(r, 3000 * attempt));
       continue;
     }
@@ -37,5 +40,17 @@ export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) 
       throw new AppError(502, 'The model API returned an empty response.');
     }
     return text;
+  }
+}
+
+// Models sometimes wrap JSON in code fences or add a sentence before it.
+export function extractJson(text) {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new AppError(502, 'The model did not return JSON.');
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    throw new AppError(502, 'The model returned JSON that could not be parsed.');
   }
 }
