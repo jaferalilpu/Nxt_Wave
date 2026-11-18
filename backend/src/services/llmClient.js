@@ -1,20 +1,25 @@
-
 import { config } from '../config.js';
 import { AppError } from '../utils/AppError.js';
 
 export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) {
-  const url = `https://api.groq.com/openai/v1/chat/completions/${config.model}:generateContent?key=${config.apiKey}`;
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     let res;
     try {
       res = await fetch(url, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          'Authorization': `Bearer ${config.apiKey}`,
+        },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: system }] },
-          contents: [{ role: 'user', parts: [{ text: user }] }],
-          generationConfig: { maxOutputTokens: maxTokens },
+          model: config.model,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ],
+          max_tokens: maxTokens,
         }),
         signal: AbortSignal.timeout(90_000),
       });
@@ -24,18 +29,13 @@ export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) 
       continue;
     }
 
-    if (res.status === 503 && attempt < retries) {
-      await new Promise((r) => setTimeout(r, 3000 * attempt));
-      continue;
-    }
-
     if (!res.ok) {
       const body = await res.text();
       throw new AppError(502, `The model API returned ${res.status}. ${body.slice(0, 200)}`);
     }
 
     const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data.choices?.[0]?.message?.content;
     if (!text) {
       throw new AppError(502, 'The model API returned an empty response.');
     }
@@ -43,7 +43,6 @@ export async function askModel({ system, user, maxTokens = 3500 }, retries = 3) 
   }
 }
 
-// Models sometimes wrap JSON in code fences or add a sentence before it.
 export function extractJson(text) {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
