@@ -4,20 +4,28 @@ import { config } from '../config.js';
 import { AppError } from '../utils/AppError.js';
 
 export async function askModel({ system, user, maxTokens = 3500 }) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${config.apiKey}`;
+
   let res;
   try {
-    res = await fetch(config.apiUrl, {
+    res = await fetch(url, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': config.apiKey,
-        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: config.model,
-        max_tokens: maxTokens,
-        system,
-        messages: [{ role: 'user', content: user }],
+        systemInstruction: {
+          parts: [{ text: system }]
+        },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: user }]
+          }
+        ],
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+        }
       }),
       signal: AbortSignal.timeout(90_000),
     });
@@ -31,7 +39,11 @@ export async function askModel({ system, user, maxTokens = 3500 }) {
   }
 
   const data = await res.json();
-  return (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new AppError(502, 'The model API returned an empty response.');
+  }
+  return text;
 }
 
 // Models sometimes wrap JSON in code fences or add a sentence before it.
