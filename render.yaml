@@ -1,0 +1,17 @@
+# Render blueprint: one web service that builds the React app and serves it
+# from the Node backend, so there is a single URL to share.
+services:
+  - type: web
+    name: proofdesk
+    runtime: node
+    plan: free
+    buildCommand: npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install
+    startCommand: npm --prefix backend start
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false   # paste it in the Render dashboard, never in git
+      - key: MODEL
+        value: claude-sonnet-5-5
+      - key: AUDIT
+        value: "on"
