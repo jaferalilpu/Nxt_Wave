@@ -1,17 +1,16 @@
-# Render blueprint: one web service that builds the React app and serves it
-# from the Node backend, so there is a single URL to share.
 services:
   - type: web
-    name: proofdesk
+    name: proofdesk-backend
     runtime: node
     plan: free
-    buildCommand: npm --prefix frontend install && npm --prefix frontend run build && npm --prefix backend install
-    startCommand: npm --prefix backend start
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node src/server.js
     healthCheckPath: /api/health
     envVars:
-      - key: ANTHROPIC_API_KEY
-        sync: false   # paste it in the Render dashboard, never in git
+      - key: GEMINI_API_KEY
+        value: AQ.Ab8RN6JYQ8YRtEKJGpvdSLeelkbjC1B_eOU5VZmik3ClZtftlA
       - key: MODEL
-        value: claude-sonnet-5-5
+        value: gemini-1.5-flash
       - key: AUDIT
         value: "on"
