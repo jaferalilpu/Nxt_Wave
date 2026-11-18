@@ -1,5 +1,5 @@
 // One small wrapper around fetch so every call handles errors the same way.
-const BASE = import.meta.env.VITE_API_URL || '';
+const BASE = import.meta.env.VITE_API_URL || 'https://backend-nxt-wave.onrender.com';
 
 async function post(path, body) {
   let res;
